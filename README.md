@@ -82,4 +82,4 @@ mix run --no-halt        # speaks MCP over stdio
 
 ## License
 
-No license has been declared yet.
+Released under the [MIT License](LICENSE).
