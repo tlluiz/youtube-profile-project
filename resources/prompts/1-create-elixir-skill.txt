@@ -1,0 +1,62 @@
+# Prompt 1 — Create the Elixir language Skill
+
+## Goal
+Author a reusable **Elixir language Skill** (a Claude Code Skill: a folder with a
+`SKILL.md` plus any supporting reference files) that makes an agent fluent and
+idiomatic in modern Elixir. This Skill is the foundation for the next prompts in
+this project, which will use it to build the project's **MCP servers** (see
+`resources/docs/overview.excalidraw`: fetch a YouTube channel's video metadata,
+rank/download the top videos, transcribe them, and synthesize an influencer
+communication profile).
+
+## Target
+- Write the Skill for the **latest stable Elixir on the latest stable Erlang/OTP**.
+  Detect the actual installed versions first (`elixir --version`), state them
+  explicitly in the Skill, and target those. Do not assume a version from memory.
+- Optimize for **building OTP applications and long-running services** (the MCP
+  servers), not just scripting.
+
+## What the Skill must cover
+1. **Language core** — pattern matching, guards, the pipe operator, structs,
+   protocols, behaviours, comprehensions, the `with` construct, error tuples vs.
+   exceptions, and when each is idiomatic.
+2. **Types & specs** — `@spec`/`@type`, Dialyzer usage, and Elixir's set-theoretic
+   **type system** (type checking / inference as available in the detected
+   version). Note what is stable vs. still evolving.
+3. **OTP & concurrency** — processes, `GenServer`, `Task`, `Supervisor`,
+   supervision trees, `Registry`, `DynamicSupervisor`, application structure, and
+   fault-tolerance ("let it crash") done correctly.
+4. **Project & tooling** — `mix` (new/deps/compile/release), dependency management
+   with Hex, `config/` and runtime configuration, `mix format`, Credo, and
+   `mix release` for deployment.
+5. **Testing** — ExUnit, async tests, fixtures/setup, `Mox`/behaviour-based mocking,
+   doctests, and property-based testing with StreamData where it adds value.
+6. **HTTP & JSON** — idiomatic clients (e.g. Req) and JSON handling, since the MCP
+   servers will call external APIs (YouTube) and exchange JSON.
+
+## Hard requirements (consolidated best practices, no unknown workarounds)
+- Every non-obvious recommendation must trace to an **authoritative source**:
+  official Elixir/Erlang docs, HexDocs for the named library, or the library's
+  own README. Include links.
+- Prefer the **standard library and widely-adopted, actively-maintained Hex
+  packages**. When you name a library, say why it's the community default.
+- **No deprecated APIs, no copy-paste hacks, no speculative or unverified
+  patterns.** If something is version-specific, uncertain, or contested, label it
+  as such instead of presenting it as settled.
+- Show **idiomatic, runnable** examples — small and correct over large and vague.
+  Follow `mix format` conventions.
+- Keep `SKILL.md` focused; push long references into supporting files the Skill
+  links to (progressive disclosure), so the description stays loadable.
+
+## Output
+- The Skill folder with `SKILL.md` (clear `name` + `description` frontmatter
+  reflecting "idiomatic modern Elixir / OTP for building services") and any
+  supporting reference files.
+- Tell me where it was created and give a one-paragraph summary of what it covers.
+
+## Self-check before finishing
+- Versions were detected on this machine and stated in the Skill (not assumed).
+- Every recommended library/API was verified current — nothing deprecated.
+- Examples compile and follow `mix format`.
+- The Skill gives an agent enough to scaffold and structure an OTP-based MCP
+  server in Elixir.
