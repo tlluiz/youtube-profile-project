@@ -1,0 +1,23 @@
+# Claude Code — local, machine-specific settings (permission grants, etc.)
+.claude/settings.local.json
+
+# Elixir / Mix build artifacts
+/_build/
+**/_build/
+/deps/
+**/deps/
+/cover/
+/doc/
+.fetch
+erl_crash.dump
+*.ez
+*.beam
+/config/*.secret.exs
+
+# Dialyzer PLT cache
+/priv/plts/
+*.plt
+
+# Environment / secrets
+.env
+.env.*
