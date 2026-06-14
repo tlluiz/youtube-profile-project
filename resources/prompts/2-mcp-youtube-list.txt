@@ -1,0 +1,74 @@
+# Prompt 2 — MCP: list a YouTube channel's videos (anonymous)
+
+## Context
+Build this with the project's Elixir Skill at `.claude/skills/elixir/SKILL.md`.
+Follow it: idiomatic modern Elixir/OTP, `mix format`, tagged `{:ok, _}` /
+`{:error, _}` results, supervised processes, `Req` for HTTP, the built-in `JSON`
+module, and — importantly — **no unknown workarounds**: verify every endpoint,
+header, and field against the live responses and authoritative sources rather
+than assuming from memory.
+
+## Goal
+Create an **MCP server** that accesses YouTube's **public, anonymous interface
+(no API key, no OAuth, no login)** to obtain all the videos of a given channel.
+For each video in that list, bring the basic information together with the
+number of views and the number of likes.
+
+Use the **anonymous public surface the YouTube website itself uses** — the
+channel's public pages and the `youtubei` ("InnerTube") endpoints that back them,
+e.g. the `ytInitialData` JSON embedded in the channel's Videos tab and the
+continuation/`browse` requests it issues. **Do not** use the YouTube Data API v3
+(it requires an API key, which is a credential — that defeats the anonymous
+principle). Determine the exact endpoints, request shape, and headers
+empirically from real responses; treat anything unverified as unknown.
+
+## Behavior
+- **Walk all pages.** If the listing is paginated (continuation tokens), follow
+  as many pages as possible until there are no more.
+- **Tolerate failures.** If any access error occurs during the walk (a failed
+  request, a missing field, an unavailable metric), ignore it and continue,
+  storing only what it was possible to download. A single bad video or page must
+  not abort the run.
+- **Per video, capture:** the video id, title, URL, and publication date (the
+  basic information), plus the view count and the like count. If a metric isn't
+  available anonymously for a given video, treat it as a missing field per the
+  rule above rather than failing the run.
+
+## Output
+- Save the list to `resources/videos/<channel>/list.csv`, where `<channel>` is
+  the channel handle or id used to request it.
+- Order by publication, **newest video first, oldest last**.
+- **Idempotent re-runs.** The MCP may be run more than once for the same
+  channel. When it is, do not rewrite the whole file — **update it by prepending
+  only the videos newer than what's already stored**, preserving the existing
+  rows and the newest-first ordering. Deduplicate by video id.
+
+## Transport & access
+- Use `Req` (per the Skill) for the HTTP calls, with a realistic browser
+  `User-Agent` and whatever headers the anonymous endpoints actually require —
+  confirm these against live responses.
+- YouTube's web endpoints are served over HTTP/2; `Req` (via Finch/Mint) can
+  negotiate it. If anonymous requests are rejected or rate-limited, diagnose the
+  actual cause (status code, headers, body) and adjust transport/headers based on
+  what works — **do not** copy a workaround from another site or platform without
+  confirming it applies here.
+- Be a polite client: reasonable request pacing and bounded concurrency
+  (`Task.async_stream`) so the walk doesn't hammer the endpoint.
+
+## Packaging
+- Implement it as an MCP server in **Elixir**, exposing a tool that takes a
+  channel (handle or id) and produces/updates the CSV described above, returning
+  a short summary (e.g. channel, total stored, newly prepended). Follow the
+  Model Context Protocol specification for the server/tool interface; pick a
+  maintained approach and verify it against its documentation.
+- Save the MCP under `resources/mcps/<mcp name>/` as a proper Mix project
+  (`mix new --sup`), with the supervision tree, config, tests, and `.formatter.exs`
+  the Skill prescribes.
+
+## Done when
+- A fresh run on a real public channel writes `resources/videos/<channel>/list.csv`,
+  newest-first, with id/title/url/published/views/likes columns.
+- A second run prepends only the new videos and leaves existing rows intact.
+- Errors mid-walk are swallowed and partial results are still saved.
+- Code compiles, passes `mix format --check-formatted`, and has tests for the
+  CSV ordering/merge logic (HTTP mocked at the client boundary, per the Skill).

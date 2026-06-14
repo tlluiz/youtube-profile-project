@@ -21,3 +21,6 @@ erl_crash.dump
 # Environment / secrets
 .env
 .env.*
+
+# Generated channel video listings (tool output)
+/resources/videos/
